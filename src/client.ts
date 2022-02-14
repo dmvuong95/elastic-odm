@@ -152,7 +152,7 @@ export default class Client extends BaseClient {
       await waitCreateIndex()
       return client.count({
         ...opts,
-        body: { query },
+        ...(query ? { body: { query } } : {}),
         index: indexName,
       }).then(e => e.body.count)
     }

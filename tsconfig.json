@@ -8,5 +8,6 @@
     "target": "ES2019",
     "outDir": "dist",
     "declaration": true
-  }
+  },
+  "exclude": ["node_modules/*", "tests/*", "dist/*"]
 }

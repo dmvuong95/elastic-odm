@@ -1,9 +1,11 @@
 {
   "name": "melasticsearch",
+  "description": "Easy to define a model for elasticsearch",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/dmvuong95/melasticsearch.git",
+  "homepage": "https://github.com/dmvuong95/melasticsearch",
   "author": "Minh Vuong",
   "license": "MIT",
   "engines": {
