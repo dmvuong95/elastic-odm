@@ -1,11 +1,11 @@
 {
-  "name": "melasticsearch",
+  "name": "elastic-odm",
   "description": "Easy to define a model for elasticsearch",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/dmvuong95/melasticsearch.git",
-  "homepage": "https://github.com/dmvuong95/melasticsearch",
+  "repository": "https://github.com/dmvuong95/elastic-odm.git",
+  "homepage": "https://github.com/dmvuong95/elastic-odm",
   "author": "Minh Vuong",
   "license": "MIT",
   "engines": {
@@ -37,7 +37,7 @@
     "elasticsearch",
     "elasticsearchjs",
     "es",
-    "melasticsearch",
+    "elastic-odm",
     "elastic",
     "search",
     "odm",

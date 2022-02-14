@@ -1,10 +1,10 @@
-# MElasticsearch
+# Elasticsearch ODM
 ## _Easy to define a model for elasticsearch_
 
 ## Using
 ### Typescript
 ```typescript
-import { Client, ElasticModel } from 'melasticsearch'
+import { Client, ElasticModel } from 'elastic-odm'
 const client = new Client({ node: 'http://localhost:9200' })
 
 interface IBook {
