@@ -182,6 +182,7 @@ export default class Client extends BaseClient {
     ElasticModel.delete = async function (_id: string, opts?: DeleteOptions) {
       await waitCreateIndex()
       await client.delete({
+        ...opts,
         index: indexName,
         id: _id,
       })
