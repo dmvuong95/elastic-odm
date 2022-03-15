@@ -92,7 +92,8 @@ const book = new Books('1', {
 })
 
 await book.create()
-await book.set({ price: 3 }).update()
+book.price = 3
+await book.update()
 await book.delete()
 const jsonData = book.toJSON()
 ```

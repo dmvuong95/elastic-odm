@@ -1,7 +1,7 @@
 import { Client as BaseClient } from '@elastic/elasticsearch'
 import type { TransportRequestPromise, ApiResponse } from '@elastic/elasticsearch/lib/Transport'
 import _ from 'lodash'
-import { getRawObj, setObject, toJSON } from './utils'
+import { getRawObj, toJSON } from './utils'
 import type {
   QueryDSL,
   SearchBody,
@@ -9,18 +9,19 @@ import type {
   UpdateOptions,
   DeleteOptions,
   DeleteByQueryOptions,
-  BulkItem,
+  BulkItems,
   CountOptions,
   SearchOptions,
   BulkOptions,
   IndicesCreateBody,
+  AnyKeys,
 } from './types'
 
-export declare interface ElasticDocument<TMapping = any> {
+export interface ElasticDocument<TMapping = any> {
   readonly _index: string;
   readonly _id: string;
   readonly _score?: number;
-  set(data: Partial<TMapping>): this;
+  // set(data: AnyKeys<TMapping>): this;
   toJSON(): TMapping;
   create(opts?: CreateOptions): Promise<this>;
   update(opts?: UpdateOptions): Promise<this>;
@@ -30,7 +31,7 @@ export declare interface ElasticDocument<TMapping = any> {
 export type ElasticEnforceDocument<TMapping = any> = TMapping & ElasticDocument<TMapping>;
 
 export interface ElasticModel<TMapping = any> {
-  new(_id: string, data?: Partial<TMapping>): ElasticEnforceDocument<TMapping>;
+  new(_id: string, data?: AnyKeys<TMapping>): ElasticEnforceDocument<TMapping>;
   readonly client: Client;
   readonly indexName: string;
   search(body?: SearchBody, opts?: SearchOptions): Promise<{ total: number, hits: ElasticEnforceDocument<TMapping>[], aggregations?: any }>;
@@ -39,7 +40,7 @@ export interface ElasticModel<TMapping = any> {
   mget(ids: string[]): Promise<ElasticEnforceDocument<TMapping>[]>;
   delete(_id: string, opts?: DeleteOptions): Promise<void>;
   deleteByQuery(query: QueryDSL, opts?: DeleteByQueryOptions): TransportRequestPromise<ApiResponse>;
-  bulk(items: BulkItem<TMapping>[], opts?: BulkOptions): TransportRequestPromise<ApiResponse>;
+  bulk(items: BulkItems<TMapping>, opts?: BulkOptions): TransportRequestPromise<ApiResponse>;
 }
 
 export default class Client extends BaseClient {
@@ -61,7 +62,7 @@ export default class Client extends BaseClient {
       })
       isCreatedIndex = true
     }
-    function ElasticModel(_id: string, data?: Partial<TMapping>) {
+    function ElasticModel(_id: string, data?: AnyKeys<TMapping>) {
       Object.defineProperty(this, '_index', {
         value: indexName,
         writable: false,
@@ -75,9 +76,9 @@ export default class Client extends BaseClient {
       getRawObj.call(this, data ?? {}, properties)
     }
     /* prototype members */
-    ElasticModel.prototype.set = function (data: Partial<TMapping>) {
-      return setObject.call(this, data, properties)
-    }
+    // ElasticModel.prototype.set = function (data: AnyKeys<TMapping>) {
+    //   return setObject.call(this, data, properties)
+    // }
     ElasticModel.prototype.toJSON = function () {
       return toJSON.call(this, properties)
     }
@@ -193,7 +194,7 @@ export default class Client extends BaseClient {
         body: { query },
       })
     }
-    ElasticModel.bulk = async function (items: BulkItem<TMapping>[], opts?: BulkOptions) {
+    ElasticModel.bulk = async function (items: BulkItems<TMapping>, opts?: BulkOptions) {
       await waitCreateIndex()
       const body = items.flatMap<any>((e) => {
         switch (e.type) {

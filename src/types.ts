@@ -27,18 +27,17 @@ export type CountOptions = Omit<RequestParams.Count, 'index' | 'body'>
 export type DeleteByQueryOptions = Omit<RequestParams.DeleteByQuery, 'index' | 'body'>
 export type BulkOptions = Omit<RequestParams.Bulk, 'index' | 'body'>
 
+export type AnyKeys<T> = { [P in keyof T]?: any } & { [k: string]: any }
+
 export type BulkItem<TMapping = any> = {
-  type: 'create';
+  type: 'create' | 'update';
   _id: string;
-  doc: TMapping;
-} | {
-  type: 'update';
-  _id: string;
-  doc: Partial<TMapping>;
+  doc: AnyKeys<TMapping>;
 } | {
   type: 'delete';
   _id: string;
 }
+export type BulkItems<TMapping = any> = BulkItem<TMapping>[]
 
 export type Properties = Record<string, {
   type?: string;

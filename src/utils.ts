@@ -69,7 +69,7 @@ export function getRawObj(data: any, properties: any) {
   return this
 }
 
-export function setObject(data: any, properties: any) {
+/* export function setObject(data: any, properties: any) {
   const fields = _.intersection(Object.keys(data), Object.keys(properties))
   for (const field of fields) {
     const v = data[field]
@@ -77,7 +77,7 @@ export function setObject(data: any, properties: any) {
     this[field] = v
   }
   return this
-}
+} */
 
 export function toJSON(properties: any) {
   const obj: any = {}

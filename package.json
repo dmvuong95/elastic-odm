@@ -1,7 +1,7 @@
 {
   "name": "elastic-odm",
   "description": "Easy to define a model for elasticsearch",
-  "version": "0.0.1",
+  "version": "7.10.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/dmvuong95/elastic-odm.git",
@@ -12,7 +12,7 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "test": "mocha -r dotenv/config -r ts-node/register tests/**/*.test.ts",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "if [ -d 'dist' ]; then rm -r dist; fi; tsc"
   },
