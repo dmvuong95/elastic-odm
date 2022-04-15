@@ -16,6 +16,13 @@ export interface SearchBody {
    * @default true
    */
   track_total_hits?: boolean;
+  /**
+   * Point in time
+   */
+  pit?: {
+    id: string;
+    keep_alive?: string;
+  };
 }
 
 export type CreateOptions = Omit<RequestParams.Create, 'index' | 'id' | 'body'>
@@ -26,6 +33,7 @@ export type SearchOptions = Omit<RequestParams.Search, 'index' | 'body'>
 export type CountOptions = Omit<RequestParams.Count, 'index' | 'body'>
 export type DeleteByQueryOptions = Omit<RequestParams.DeleteByQuery, 'index' | 'body'>
 export type BulkOptions = Omit<RequestParams.Bulk, 'index' | 'body'>
+export type OpenPointInTimeOptions = Omit<RequestParams.OpenPointInTime, 'index'>
 
 export type AnyKeys<T> = { [P in keyof T]?: any } & { [k: string]: any }
 
@@ -52,4 +60,12 @@ export interface IndicesCreateBody {
     [key: string]: any;
   };
   settings?: any;
+}
+
+export interface Hit {
+  _index: string;
+  // _type: string;
+  _id: string;
+  _score?: number;
+  _source?: any;
 }

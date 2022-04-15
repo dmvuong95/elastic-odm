@@ -55,9 +55,36 @@ describe('Test ElasticModel', () => {
       return Promise.all([
         new ElasticModelTest('456', data).create({ refresh: 'wait_for' }),
         new ElasticModelTest('789', data).create({ refresh: 'wait_for' }),
+        new ElasticModelTest('987', data).create({ refresh: 'wait_for' }),
       ]).then(r => {
         return Promise.all(r.map(item => item.delete({ refresh: 'wait_for' })))
       })
     })
+  })
+  describe('Test PIT', function() {
+    this.timeout(0)
+    const item = new ElasticModelTest('111', data);
+    let pitId: string;
+    before(async () => {
+      await ElasticModelTest.deleteByQuery({
+        match_all: {},
+      })
+      await item.create({ refresh: 'wait_for' })
+    })
+    it('Test open PIT', async () => {
+      pitId = await ElasticModelTest.openPointInTime({ keep_alive: '1m' })
+    })
+    it('Test search with PIT', async () => {
+      const rs = await ElasticModelTest.search({
+        pit: {
+          id: pitId,
+          keep_alive: '1m',
+        },
+      })
+      expect(rs.total, 'Total is not equal to 1').to.equal(1)
+      expect(rs.hits[0]._id, '_id is not equal to item._id').to.equal(item._id)
+    })
+    it('Test close PIT', () => ElasticModelTest.closePointInTime(pitId))
+    after(() => item.delete())
   })
 })

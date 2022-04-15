@@ -1,5 +1,4 @@
 import { Client as BaseClient } from '@elastic/elasticsearch'
-import type { TransportRequestPromise, ApiResponse } from '@elastic/elasticsearch/lib/Transport'
 import _ from 'lodash'
 import { getRawObj, toJSON } from './utils'
 import type {
@@ -15,12 +14,15 @@ import type {
   BulkOptions,
   IndicesCreateBody,
   AnyKeys,
+  Hit,
+  OpenPointInTimeOptions,
 } from './types'
 
-export interface ElasticDocument<TMapping = any> {
+export interface ElasticDocument<TMapping = any> extends Hit {
   readonly _index: string;
   readonly _id: string;
   readonly _score?: number;
+  _source?: any;
   // set(data: AnyKeys<TMapping>): this;
   toJSON(): TMapping;
   create(opts?: CreateOptions): Promise<this>;
@@ -34,13 +36,19 @@ export interface ElasticModel<TMapping = any> {
   new(_id: string, data?: AnyKeys<TMapping>): ElasticEnforceDocument<TMapping>;
   readonly client: Client;
   readonly indexName: string;
-  search(body?: SearchBody, opts?: SearchOptions): Promise<{ total: number, hits: ElasticEnforceDocument<TMapping>[], aggregations?: any }>;
+  search(body?: SearchBody, opts?: SearchOptions): Promise<{
+    total: number;
+    hits: ElasticEnforceDocument<TMapping>[];
+    aggregations?: any;
+  }>;
   count(query?: QueryDSL, opts?: CountOptions): Promise<number>;
   get(_id: string): Promise<ElasticEnforceDocument<TMapping> | null>;
   mget(ids: string[]): Promise<ElasticEnforceDocument<TMapping>[]>;
   delete(_id: string, opts?: DeleteOptions): Promise<void>;
-  deleteByQuery(query: QueryDSL, opts?: DeleteByQueryOptions): TransportRequestPromise<ApiResponse>;
-  bulk(items: BulkItems<TMapping>, opts?: BulkOptions): TransportRequestPromise<ApiResponse>;
+  deleteByQuery(query: QueryDSL, opts?: DeleteByQueryOptions): Promise<any>;
+  bulk(items: BulkItems<TMapping>, opts?: BulkOptions): Promise<any>;
+  openPointInTime(opts?: OpenPointInTimeOptions): Promise<string>;
+  closePointInTime(id: string): Promise<any>;
 }
 
 export default class Client extends BaseClient {
@@ -129,7 +137,7 @@ export default class Client extends BaseClient {
           ...body,
           track_total_hits: body?.track_total_hits ?? true,
         },
-        index: indexName,
+        index: body?.pit ? void 0 : indexName,
       }).then((result) => {
         const hits = _.get(result, 'body.hits.hits', [])
         const total = _.get(result, 'body.hits.total.value', 0)
@@ -138,6 +146,10 @@ export default class Client extends BaseClient {
           total,
           hits: hits.map((h) => {
             const obj = new ElasticModel(h._id, h._source)
+            Object.defineProperty(obj, '_source', {
+              value: h._source,
+              enumerable: false,
+            })
             Object.defineProperty(obj, '_score', {
               value: h._score,
               writable: false,
@@ -164,7 +176,11 @@ export default class Client extends BaseClient {
         id: _id,
       }).then((result) => {
         if (result.body.found) {
-          return new ElasticModel(_id, result.body._source)
+          const { _source } = result.body
+          return Object.defineProperty(new ElasticModel(_id, _source), '_source', {
+            value: _source,
+            enumerable: false,
+          })
         }
         return null
       })
@@ -176,7 +192,11 @@ export default class Client extends BaseClient {
         body: { ids },
       }).then((result) => {
         const docs: any[] = (result.body.docs || []).filter(e => e.found)
-        return docs.map(doc => new ElasticModel(doc._id, doc._source))
+        return docs.map(doc => Object.defineProperty(
+          new ElasticModel(doc._id, doc._source),
+          '_source',
+          { value: doc._source, enumerable: false },
+        ))
       })
     }
     ElasticModel.delete = async function (_id: string, opts?: DeleteOptions) {
@@ -193,7 +213,7 @@ export default class Client extends BaseClient {
         ...opts,
         index: indexName,
         body: { query },
-      })
+      }).then(r => r.body)
     }
     ElasticModel.bulk = async function (items: BulkItems<TMapping>, opts?: BulkOptions) {
       await waitCreateIndex()
@@ -221,7 +241,18 @@ export default class Client extends BaseClient {
         ...opts,
         body,
         index: indexName,
+      }).then(r => r.body)
+    }
+    ElasticModel.openPointInTime = async function (opts?: OpenPointInTimeOptions) {
+      await waitCreateIndex()
+      const { body } = await client.openPointInTime({
+        ...opts,
+        index: indexName,
       })
+      return body.id
+    }
+    ElasticModel.closePointInTime = function (id: string) {
+      return client.closePointInTime({ body: { id } }).then(r => r.body)
     }
     client.models[indexName] = ElasticModel as any as ElasticModel<TMapping>
     return ElasticModel as any as ElasticModel<TMapping>
