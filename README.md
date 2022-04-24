@@ -1,8 +1,9 @@
 # Elasticsearch ODM
-## _Easy to define a model for elasticsearch_
-
-## Using
-### Typescript
+## _Installation_
+```bash
+$ npm i elastic-odm
+```
+## _Using_
 ```typescript
 import { Client, ElasticModel } from 'elastic-odm'
 const client = new Client({ node: 'http://localhost:9200' })
@@ -18,6 +19,7 @@ interface IBook {
 }
 
 const bookIndex = 'books'
+// Declare model
 const Books = client.models[bookIndex] as ElasticModel<IBook> ||
   client.createModel<IBook>(bookIndex, {
     mappings: {
@@ -42,13 +44,16 @@ const Books = client.models[bookIndex] as ElasticModel<IBook> ||
       }
     }
   })
-
+// Get book by _id
 const book = await Books.get('1')
+// Get books by list of _id
 const books = await Books.mget(['1', '2', '3'])
+// Search books
 const { total, hits: books } = await Books.search({
   query: { ... },
   sort: [{ price: { order: 'desc' } }]
 })
+// Bulk API
 await Books.bulk([
   { 
     type: 'create',
@@ -73,14 +78,17 @@ await Books.bulk([
     _id: '1'
   }
 ])
+// Count books
 const total = await Books.count({
   match: { name: 'foo' }
 })
+// Delete book by _id
 await Books.delete('1')
+// Delete books by query
 await Books.deleteByQuery({
   match: { name: 'baz' }
 })
-
+// Declare a book
 const book = new Books('1', {
   name: 'Book 1',
   price: 2.5,
@@ -90,10 +98,11 @@ const book = new Books('1', {
     author: 'author1'
   }
 })
-
+// Create, update and delete this book
 await book.create()
 book.price = 3
 await book.update()
 await book.delete()
+// Get JSON data
 const jsonData = book.toJSON()
 ```

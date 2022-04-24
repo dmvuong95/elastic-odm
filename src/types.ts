@@ -23,6 +23,7 @@ export interface SearchBody {
     id: string;
     keep_alive?: string;
   };
+  [key: string]: any;
 }
 
 export type CreateOptions = Omit<RequestParams.Create, 'index' | 'id' | 'body'>
